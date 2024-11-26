@@ -15,14 +15,9 @@ public class ResourceModel
         _shovelCount = shovelCount;
     }
 
-    public int GetShovelCount()
-    {
-        return _shovelCount;
-    }
-
-    public int GeCollectedGold() {
-        return _collectedGold;
-    }
+    public int ShovelCount => _shovelCount;
+    public int RequiredGold => _requiredGold;
+    public int CollectedGold => _collectedGold;
 
     public void IncreaseCollectedGold()
     {
@@ -31,10 +26,10 @@ public class ResourceModel
 
     public void DecreaseShovelCount()
     {
-        _shovelCount--;
+        if (_shovelCount > 0)
+        {
+            _shovelCount--;
+        }
     }
-
-
-
-
 }
+

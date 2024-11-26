@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ResourcePresenter
+public class ResourcePresenter : IResourceHandler
 {
     private ResourceModel _resourceModel;
     private ResourceView _resourceView;
@@ -11,17 +11,25 @@ public class ResourcePresenter
     {
         _resourceModel = resourceModel;
         _resourceView = resourceView;
-    }   
+    }
 
-    public void shovelUse()
+    public void UseShovel()
     {
-        _resourceModel.DecreaseShovelCount(); //уменьшаем кол-во лопат
+        _resourceModel.DecreaseShovelCount();
+        _resourceView.UpdateShovelView(_resourceModel.ShovelCount);
+    }
 
-        _resourceView.UpdateShovelView(_resourceModel.GetShovelCount()); //обновляем ShovelView согласно новому значению лопат
+    public void AddGold()
+    {
+        _resourceModel.IncreaseCollectedGold();
+        _resourceView.UpdateGoldView(_resourceModel.CollectedGold, _resourceModel.RequiredGold);
     }
 
     public bool CanDig()
     {
-        return _resourceModel.GetShovelCount() > 0;
+        return _resourceModel.ShovelCount > 0;
     }
+
+   
 }
+

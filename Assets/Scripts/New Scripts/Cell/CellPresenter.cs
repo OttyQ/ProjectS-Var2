@@ -7,17 +7,15 @@ public class CellPresenter
 {
     private CellModel _cellModel;
     private CellView _cellView;
+    private IResourceHandler _resourceHandler;
 
-    private ResourcePresenter _resourcePresenter;
-
-    public CellPresenter(CellModel cellModel, CellView cellView, ResourcePresenter resourcePresenter)
+    public CellPresenter(CellModel cellModel, CellView cellView, IResourceHandler resourceHandler)
     {
         _cellModel = cellModel;
         _cellView = cellView;
-        _resourcePresenter = resourcePresenter;
+        _resourceHandler = resourceHandler;
 
         Bind();
-        
     }
 
     public void Bind()
@@ -29,21 +27,18 @@ public class CellPresenter
     {
         if (CanDig())
         {
-            //уменьшение кол-ва лопат в ResourceModel через ResourcePresenter
-            _resourcePresenter.shovelUse();
+            _resourceHandler.UseShovel();
 
-            //вскапывание 
-            _cellModel.IncreaseCurrentDepth();//уменьшаем глубину у модели
-            _cellView.UpdateDepth(_cellModel.GetCurrentDepth(), _cellModel.GetMaxDepth());//обновляем view согласно новой глубине
+            _cellModel.IncreaseCurrentDepth();
+            _cellView.UpdateDepth(_cellModel.CurrentDepth, _cellModel.MaxDepth);
 
-            //спавн золота
-            //realisation
+            // Спавн золота или другие действия
         }
     }
 
     public bool CanDig()
     {
-        return (_cellModel.GetCurrentDepth() < _cellModel.GetMaxDepth() && !_cellModel.GetHasGold() && _resourcePresenter.CanDig());
+        return (_cellModel.CurrentDepth < _cellModel.MaxDepth && !_cellModel.HasGold && _resourceHandler.CanDig());
     }
 
     public void UnBind()
@@ -54,3 +49,4 @@ public class CellPresenter
         }
     }
 }
+
