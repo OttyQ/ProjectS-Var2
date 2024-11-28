@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -26,10 +27,19 @@ public class ResourceModel
 
     public void DecreaseShovelCount()
     {
+        Console.WriteLine("ResourceModel DecreaseShovelCount invoke!");
+
         if (_shovelCount > 0)
         {
             _shovelCount--;
         }
+    }
+
+    public void ResetModel(int requiredGold, int collectedGold, int shovelCount)
+    {
+        _requiredGold = requiredGold;
+        _collectedGold = collectedGold;
+        _shovelCount = shovelCount;
     }
 }
 

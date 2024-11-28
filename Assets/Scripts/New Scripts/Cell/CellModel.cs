@@ -1,12 +1,13 @@
 using System;
-using System.Diagnostics;
-using UnityEngine;
 
 public class CellModel
 {
     private int _maxDepth;
     private int _currentDepth;
     private bool _hasGold;
+
+    public event Action OnGoldSpawned;
+    public event Action OnGoldRemoved;
 
     public CellModel(int curDepth, int maxDepth, bool hasGold)
     {
@@ -29,12 +30,19 @@ public class CellModel
 
     public void GoldRemoved()
     {
-        _hasGold = false;
+        if (_hasGold)
+        {
+            _hasGold = false;
+            OnGoldRemoved?.Invoke(); // Уведомляем подписчиков
+        }
     }
 
     public void GoldSpawned()
     {
-        _hasGold = true;
+        if (!_hasGold)
+        {
+            _hasGold = true;
+            OnGoldSpawned?.Invoke(); // Уведомляем подписчиков
+        }
     }
 }
-

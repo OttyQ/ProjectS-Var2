@@ -6,57 +6,29 @@ using UnityEngine.EventSystems;
 
 public class RewardItemView : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler
 {
-    public event Action OnBeginDragEvent;
-    public event Action OnDragEvent;
-    public event Action<bool> OnEndDragEvent; // True, если сброшено в сумку
+    public event Action OnDragStart;  // Событие начала перетаскивания
+    public event Action<Vector3> OnDragCont;  // Событие перетаскивания
+    public event Action OnDragEnd;  // Событие окончания перетаскивания
 
-    [SerializeField] private Canvas _mainCanvas;
-
-    private RectTransform _rectTransform;
-    private CanvasGroup _canvasGroup;
-    private Vector3 _originalPosition;
-    private Transform _originalParent;
-    private Transform _bagTransform;
-
-    public void Init(Canvas mainCanvas, Transform bagTransform)
-    {
-        _mainCanvas = mainCanvas;
-        _bagTransform = bagTransform;
-
-        _rectTransform = GetComponent<RectTransform>();
-        _canvasGroup = GetComponent<CanvasGroup>();
-        _originalPosition = _rectTransform.localPosition;
-    }
     public void OnBeginDrag(PointerEventData eventData)
     {
-        _originalParent = _rectTransform.parent;
-        OnBeginDragEvent?.Invoke();
-
-        _rectTransform.SetParent(_mainCanvas.transform, true);
-        _canvasGroup.blocksRaycasts = false;
+        Debug.Log("OnbegDrag invoke!");
+        OnDragStart?.Invoke();
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        _rectTransform.anchoredPosition += eventData.delta / _mainCanvas.scaleFactor;
-        OnDragEvent?.Invoke();
+        Debug.Log("OnDrag invoke!");
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(eventData.position);
+        worldPosition.z = 0; // Убираем смещение по оси Z
+        OnDragCont?.Invoke(worldPosition);
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        bool droppedInBag = CheckIfDroppedInBag();
-        OnEndDragEvent?.Invoke(droppedInBag);
+        Debug.Log("OnEndDrag invoke!");
+        OnDragEnd?.Invoke();
     }
 
-    public void ResetPosition()
-    {
-        _rectTransform.SetParent(_originalParent, true);
-        _rectTransform.localPosition = _originalPosition;
-        _canvasGroup.blocksRaycasts = true;
-    }
-
-    private bool CheckIfDroppedInBag()
-    {
-        return _rectTransform.parent == _bagTransform;
-    }
+   
 }

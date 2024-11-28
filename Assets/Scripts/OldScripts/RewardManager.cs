@@ -1,77 +1,43 @@
-using System;
 using UnityEngine;
 
-
-/// <summary>
-/// Класс для управления логикой спауна золота в игре.
-/// Обрабатывает шанс появления золота в клетке и управляет его спауном.
-/// </summary>
-public class RewardManager : MonoBehaviour
+public class RewardManager
 {
     private float _spawnChance;
     private float _defaultSpawnChance;
     private float _chanceIncrement;
+    private GoldSpawner _goldSpawner;
 
-    private IGoldSpawner goldSpawner;
-
-    public void Initialize(float initialSpawnChance, float incrementChance, GameObject goldPrefab)
+    public RewardManager(float initialSpawnChance, float incrementChance, GameObject goldPrefab)
     {
-        if (goldPrefab == null)
-            throw new ArgumentNullException(nameof(goldPrefab), "Gold prefab cannot be null");
-
         _defaultSpawnChance = initialSpawnChance;
         _spawnChance = _defaultSpawnChance;
         _chanceIncrement = incrementChance;
-
-        goldSpawner = new GoldSpawner(goldPrefab);
+        _goldSpawner = new GoldSpawner(goldPrefab);
     }
 
-    private void OnDisable()
-    {
-        UnsubscribeFromCellEvents(FindObjectsOfType<Cell>());
-    }
-
-    /// <summary>
-    /// Подписка на события клеток для попытки спавна золото при вскапывании клетки.
-    /// </summary>
-    /// <param name="cells">Массив клеток</param>
-    public void SubscribeToCellEvents(Cell[] cells)
-    {
-        foreach (var cell in cells)
-        {
-            cell.GoldDigged += TrySpawnGold;
-        }
-
-        Debug.Log("Subscribed to cell events from RewardManager!");
-    }
-
-    public void UnsubscribeFromCellEvents(Cell[] cells)
-    {
-        foreach (var cell in cells)
-        {
-            cell.GoldDigged -= TrySpawnGold;
-        }
-    }
-
-    /// <summary>
-    /// Пытается заспавнить золото в клетке. Если золото не появляется, увеличивает шанс его появления.
-    /// </summary>
-    private bool TrySpawnGold(Transform cell)
+    // Метод для спавна золота
+    public void TrySpawnGold(CellModel cellModel, Transform cellTransform)
     {
         if (IsGoldSpawned())
         {
-            goldSpawner.SpawnGoldObject(cell);
-            ResetSpawnChance();
-            return true;
-        }
+            Debug.Log("Gold spawn start!");
+            GameObject goldObject = _goldSpawner.SpawnGoldObject(cellTransform);
+            RewardItemModel goldModel = new RewardItemModel();  // Создаём модель золота
+            RewardItemView goldView = goldObject.GetComponent<RewardItemView>();  // Получаем View золота
+            new RewardItemPresenter(goldModel, goldView, cellModel);  // Создаём Presenter золота
 
-        IncreaseSpawnChance();
-        return false;
+            cellModel.GoldSpawned();  // Связываем золото с клеткой
+            Debug.Log("Gold spawn end!");
+        }
+        else
+        {
+            IncreaseSpawnChance();
+        }
     }
 
     private bool IsGoldSpawned()
     {
-        return UnityEngine.Random.Range(0f, 1f) <= _spawnChance;
+        return Random.Range(0f, 1f) <= _spawnChance;
     }
 
     private void IncreaseSpawnChance()
@@ -84,14 +50,5 @@ public class RewardManager : MonoBehaviour
     {
         _spawnChance = _defaultSpawnChance;
         Debug.Log($"Spawn chance reset to default: {_defaultSpawnChance:F2}");
-    }
-
-    /// <summary>
-    /// Ручной спавн золота в клетке. Используется при загрузке игры.
-    /// </summary>
-    public void HandleGoldSpawn(Transform cell)
-    {
-        Debug.Log("Handle spawn gold!");
-        goldSpawner.SpawnGoldObject(cell);
     }
 }

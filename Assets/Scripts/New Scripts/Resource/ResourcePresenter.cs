@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,6 +16,7 @@ public class ResourcePresenter : IResourceHandler
 
     public void UseShovel()
     {
+        Console.WriteLine("ResourcePresenter UseShovel invoke!");
         _resourceModel.DecreaseShovelCount();
         _resourceView.UpdateShovelView(_resourceModel.ShovelCount);
     }

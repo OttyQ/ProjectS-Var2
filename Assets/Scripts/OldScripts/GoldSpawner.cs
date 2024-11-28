@@ -9,22 +9,10 @@ public class GoldSpawner : IGoldSpawner
         _goldPrefab = goldPrefab;
     }
 
-    public void SpawnGoldObject(Transform cell)
+    public GameObject SpawnGoldObject(Transform cell)
     {
-        if (cell == null)
-        {
-            Debug.LogWarning("Cannot spawn gold: cell transform is null.");
-            return;
-        }
+        GameObject goldObject = Object.Instantiate(_goldPrefab, cell.position, Quaternion.identity);
 
-        GameObject gold = Object.Instantiate(_goldPrefab, cell.position, Quaternion.identity);
-    
-        gold.transform.SetParent(cell);
-    
-        gold.transform.localPosition = Vector3.zero;
-
-        gold.transform.localScale = Vector3.one * 0.5f;
-
-        Debug.Log($"Gold spawned at cell {cell.name}. Position: {gold.transform.position}");
+        return goldObject;
     }
 }

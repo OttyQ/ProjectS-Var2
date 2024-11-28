@@ -5,50 +5,73 @@ using UnityEngine.EventSystems;
 
 public class RewardItemPresenter
 {
-    private readonly RewardItemModel _model;
-    private readonly RewardItemView _view;
-    //private readonly IBagHandler _bagHandler;
+    private RewardItemModel _goldModel;
+    private RewardItemView _goldView;
+    private Vector3 _originalPosition; // Исходная позиция золота
+    private CellModel _parentCell;
 
-    public RewardItemPresenter(RewardItemModel model, RewardItemView view /*IBagHandler bagHandler*/)
+    public RewardItemPresenter(RewardItemModel goldModel, RewardItemView goldView, CellModel parentCell)
     {
-        _model = model;
-        _view = view;
-        //_bagHandler = bagHandler;
+        _goldModel = goldModel;
+        _goldView = goldView;
+        _parentCell = parentCell;
 
-        _view.OnBeginDragEvent += HandleBeginDrag;
-        _view.OnDragEvent += HandleDrag;
-        _view.OnEndDragEvent += HandleEndDrag;
+        _originalPosition = _goldView.transform.position;
+        
+
+        BindEvents();
     }
 
-    private void HandleBeginDrag()
+    private void BindEvents()
     {
-        Debug.Log("RewardItemPresenter: Begin Drag.");
+        _goldView.OnDragStart += HandleDragStart;
+        _goldView.OnDragCont += HandleDrag;
+        _goldView.OnDragEnd += HandleDragEnd;
     }
 
-    private void HandleDrag()
+    private void UnbindEvents()
     {
-        Debug.Log("RewardItemPresenter: Dragging.");
+        _goldView.OnDragStart -= HandleDragStart;
+        _goldView.OnDragCont -= HandleDrag;
+        _goldView.OnDragEnd -= HandleDragEnd;
     }
 
-    private void HandleEndDrag(bool droppedInBag)
+    private void HandleDragStart()
     {
-        if (droppedInBag)
+        Debug.Log("Gold drag started.");
+    }
+
+    private void HandleDrag(Vector3 newPosition)
+    {
+        _goldView.transform.position = newPosition;
+    }
+
+    private void HandleDragEnd()
+    {
+        if (IsGoldInBag())
         {
-            _model.MoveToBag();
-            //_bagHandler.AddToBag(_model); // Уведомить сумку, что золото добавлено
-            GameObject.Destroy(_view.gameObject); // Удалить визуальный объект
+            Debug.Log("Gold placed in Bag.");
+            //_goldModel.Collect();    // Отмечаем золото как собранное
+            _parentCell.GoldRemoved(); // Уведомляем клетку
+            Dispose();
+            Object.Destroy(_goldView.gameObject); // Удаляем объект золота
         }
         else
         {
-            _model.ResetPosition();
-            _view.ResetPosition();
+            // Возвращаем золото на исходную позицию
+            _goldView.transform.position = _originalPosition;
         }
     }
 
-    public void Unsubscribe()
+    private bool IsGoldInBag()
     {
-        _view.OnBeginDragEvent -= HandleBeginDrag;
-        _view.OnDragEvent -= HandleDrag;
-        _view.OnEndDragEvent -= HandleEndDrag;
+        // Проверяем, пересеклось ли золото с Bag
+        Collider2D bagCollider = Physics2D.OverlapPoint(_goldView.transform.position, LayerMask.GetMask("Bag"));
+        return bagCollider != null;
+    }
+
+    public void Dispose()
+    {
+        UnbindEvents();
     }
 }

@@ -8,12 +8,14 @@ public class CellPresenter
     private CellModel _cellModel;
     private CellView _cellView;
     private IResourceHandler _resourceHandler;
+    private RewardManager _rewardManager;
 
-    public CellPresenter(CellModel cellModel, CellView cellView, IResourceHandler resourceHandler)
+    public CellPresenter(CellModel cellModel, CellView cellView, IResourceHandler resourceHandler, RewardManager rewardManager)
     {
         _cellModel = cellModel;
         _cellView = cellView;
         _resourceHandler = resourceHandler;
+        _rewardManager = rewardManager;
 
         Bind();
     }
@@ -32,7 +34,12 @@ public class CellPresenter
             _cellModel.IncreaseCurrentDepth();
             _cellView.UpdateDepth(_cellModel.CurrentDepth, _cellModel.MaxDepth);
 
-            // Спавн золота или другие действия
+            Debug.Log("Try to spawn Gold!");
+            _rewardManager.TrySpawnGold(_cellModel, _cellView.transform);
+        }
+        else
+        {
+            Debug.LogWarning("Cannot dig further!");
         }
     }
 
@@ -48,5 +55,15 @@ public class CellPresenter
             _cellView.OnCellClicked -= OnCellDigged;
         }
     }
+
+    public void Dispose()
+    {
+        UnBind();
+        _cellView.ResetEvents(); // Сбрасываем события
+        _cellModel = null;
+        _cellView = null;
+        _resourceHandler = null;
+    }
 }
+
 
