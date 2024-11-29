@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -20,7 +18,7 @@ public class RewardItemView : MonoBehaviour, IDragHandler, IBeginDragHandler, IE
     {
         Debug.Log("OnDrag invoke!");
         Vector3 worldPosition = Camera.main.ScreenToWorldPoint(eventData.position);
-        worldPosition.z = 0; // Убираем смещение по оси Z
+        worldPosition.z = -1; // Убираем смещение по оси Z
         OnDragCont?.Invoke(worldPosition);
     }
 

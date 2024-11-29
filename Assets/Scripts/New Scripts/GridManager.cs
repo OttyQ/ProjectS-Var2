@@ -57,9 +57,8 @@ public class GridManager : MonoBehaviour
         }
 
         // Центрирование камеры и установка рамок
-        var center = new Vector2((float)_size / 2 - 0.5f, (float)_size / 2 - 0.5f);
+        var center = GetGridCenter();
         SetBorder(center);
-        CenterCamera(center);
     }
 
     public void ClearGrid()
@@ -69,10 +68,7 @@ public class GridManager : MonoBehaviour
             presenter.Dispose();
         }
 
-        _presenters.Clear();
-        _cells.Clear();
-        _cellModels.Clear();
-
+        
         // Удаляем объекты клеток
         foreach (var cell in _cells)
         {
@@ -85,6 +81,9 @@ public class GridManager : MonoBehaviour
             Destroy(_board.gameObject);
             _board = null;
         }
+        _presenters.Clear();
+        _cells.Clear();
+        _cellModels.Clear();
     }
 
     private void SetBorder(Vector2 center)
@@ -92,9 +91,8 @@ public class GridManager : MonoBehaviour
         _board = Instantiate(_boardPrefab, center, Quaternion.identity);
         _board.size = new Vector2(_size, _size);
     }
-
-    private void CenterCamera(Vector2 center)
+    public Vector2 GetGridCenter()
     {
-        Camera.main.transform.position = new Vector3(center.x, center.y, -10);
+        return new Vector2((float)_size / 2 - 0.5f, (float)_size / 2 - 0.5f);
     }
 }

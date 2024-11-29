@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class CellPresenter
@@ -8,9 +5,9 @@ public class CellPresenter
     private CellModel _cellModel;
     private CellView _cellView;
     private IResourceHandler _resourceHandler;
-    private RewardManager _rewardManager;
+    private IRewardManager _rewardManager;
 
-    public CellPresenter(CellModel cellModel, CellView cellView, IResourceHandler resourceHandler, RewardManager rewardManager)
+    public CellPresenter(CellModel cellModel, CellView cellView, IResourceHandler resourceHandler, IRewardManager rewardManager)
     {
         _cellModel = cellModel;
         _cellView = cellView;

@@ -11,7 +11,9 @@ public class GoldSpawner : IGoldSpawner
 
     public GameObject SpawnGoldObject(Transform cell)
     {
-        GameObject goldObject = Object.Instantiate(_goldPrefab, cell.position, Quaternion.identity);
+        Vector3 newPos = cell.position;
+        newPos.z = -0.5f;
+        GameObject goldObject = Object.Instantiate(_goldPrefab, newPos, Quaternion.identity);
 
         return goldObject;
     }

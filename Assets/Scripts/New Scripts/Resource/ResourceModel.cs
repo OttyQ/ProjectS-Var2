@@ -22,6 +22,7 @@ public class ResourceModel
 
     public void IncreaseCollectedGold()
     {
+        if(_collectedGold < _requiredGold)
         _collectedGold++;
     }
 

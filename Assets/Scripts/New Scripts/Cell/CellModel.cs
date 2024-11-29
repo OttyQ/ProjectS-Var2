@@ -1,6 +1,6 @@
 using System;
 
-public class CellModel
+public class CellModel: ICellModel
 {
     private int _maxDepth;
     private int _currentDepth;
