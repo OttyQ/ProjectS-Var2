@@ -1,7 +1,7 @@
 using System.IO;
 using UnityEngine;
 
-public class SaverLoader : MonoBehaviour
+public class SaverLoader
 {
     private string SavePath => Path.Combine(Application.persistentDataPath, "savegame.json");
 
@@ -12,7 +12,7 @@ public class SaverLoader : MonoBehaviour
     public void SaveGame(GameSaveData saveData)
     {
         Debug.Log("Write to save");
-        Debug.Log($"Save path:{SavePath}");
+        Debug.Log($"Save path: {SavePath}");
         string json = JsonUtility.ToJson(saveData);
         File.WriteAllText(SavePath, json);
     }
@@ -49,5 +49,4 @@ public class SaverLoader : MonoBehaviour
             Debug.Log("File not found!");
         }
     }
-
 }

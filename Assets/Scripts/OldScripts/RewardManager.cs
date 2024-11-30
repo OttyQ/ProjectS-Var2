@@ -45,6 +45,21 @@ public class RewardManager: IRewardManager
         }
     }
 
+    public void ForceSpawnGold(ICellModel cellModel, Transform cellTransform)
+    {
+        Debug.Log("Force spawning gold!");
+        GameObject goldObject = _goldSpawner.SpawnGoldObject(cellTransform); // Спавним объект золота
+        RewardItemModel goldModel = new RewardItemModel();  // Создаём модель золота
+        RewardItemView goldView = goldObject.GetComponent<RewardItemView>();  // Получаем View золота
+
+        // Создаём Presenter золота
+        var presenter = new RewardItemPresenter(goldModel, goldView, cellModel, this, _resourceHandler);
+        _activePresenters.Add(presenter); // Добавляем презентер в список
+
+        cellModel.GoldSpawned(); // Уведомляем модель клетки, что золото заспавнено
+        Debug.Log("Gold force-spawned successfully!");
+    }
+
     public void ClearAllGold()
     {
         foreach (var presenter in _activePresenters)

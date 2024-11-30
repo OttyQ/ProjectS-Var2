@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,6 +18,7 @@ public class Bootstrap2 : MonoBehaviour
     private ResourcePresenter _resPresenter;
     private RewardManager _rewardManager;
     private GameObject _bagInstance;
+    private SaverLoader _saveLoader;
 
     void Start()
     {
@@ -26,80 +28,87 @@ public class Bootstrap2 : MonoBehaviour
             return;
         }
 
-        InitializeGame();
+        _saveLoader = new SaverLoader(); // создаем SaverLoader
+
+        var savedData = _saveLoader.LoadGame(); // Пытаемся загрузить игру
+        if (savedData != null)
+        {
+            LoadGame(savedData); // Загружаем игру, если сохранение найдено
+        }
+        else
+        {
+            InitializeGameFromConfig(); // Инициализируем игру из Config, если сохранения нет
+        }
     }
 
-
-    private void InitializeGame()
+    private void OnDisable()
     {
-        
+        UnBind();
+    }
+    private void OnApplicationQuit()
+    {
+        SaveGame();
+    }
 
+    private void InitializeGameFromConfig()
+    {
+        Debug.Log("Initializing game from Config...");
         StartGame();
-
-        if (_bagInstance == null)
-        {
-            PlaceBag();
-        }
+        PlaceBagIfNeeded();
     }
 
-    private void StartGame()
+    private void LoadGame(GameSaveData savedData)
     {
-        // Инициализация ресурсов
-        ResourceInit();
+        Debug.Log("Loading game from save file...");
 
-        if (_rewardManager == null)
-        {
-            _rewardManager = new RewardManager(_gameConfig.goldSpawnChance, _gameConfig.goldSpawnChanceIncrement, _goldPrefab, _resPresenter);
-        }
-
-        _gridManager.Initialize(_gameConfig.fieldSize, _cellPrefab, _boardPrefab, _gameConfig, _resPresenter, _rewardManager);
-        _gridManager.GenerateGrid();
-
-        Vector2 gridCenter = _gridManager.GetGridCenter();
-        CenterCamera(gridCenter);
-    }
-
-    private void ResourceInit()
-    {
-        // Инициализируем представление ресурсов
-        _resourceView.Init(_gameConfig.initialShovelCount, _gameConfig.requiredGoldBars);
-
-        // Инициализируем модель и презентер ресурсов (если они еще не созданы)
-        if (_resModel == null)
-        {
-            _resModel = new ResourceModel(_gameConfig.initialShovelCount, 0, _gameConfig.requiredGoldBars);
-        }
-
-        if (_resPresenter == null)
-        {
-            _resPresenter = new ResourcePresenter(_resModel, _resourceView);
-            
-        }
-
+        // Восстанавливаем данные ресурсов
+        _resModel = new ResourceModel(_gameConfig.requiredGoldBars, savedData.collectedGold, savedData.shovels);
+        _resourceView.Init(savedData.shovels, _gameConfig.requiredGoldBars, savedData.collectedGold);
+        _resPresenter = new ResourcePresenter(_resModel, _resourceView);
         Bind();
-        // Сбрасываем ресурсы к начальному состоянию
-        _resModel.ResetModel(_gameConfig.requiredGoldBars, 0, _gameConfig.initialShovelCount);
+
+        // Восстанавливаем данные сетки
+        _rewardManager = new RewardManager(_gameConfig.goldSpawnChance, _gameConfig.goldSpawnChanceIncrement, _goldPrefab, _resPresenter);
+        _gridManager.Initialize(_gameConfig.fieldSize, _cellPrefab, _boardPrefab, _gameConfig, _resPresenter, _rewardManager);
+        _gridManager.HandleGenerateGrid(savedData.cells);
+        CenterCamera(_gridManager.GetGridCenter());
+        PlaceBagIfNeeded();
+
+        Debug.Log("Game successfully loaded.");
+    }
+
+    private void SaveGame()
+    {
+        var saveData = new GameSaveData
+        {
+            shovels = _resModel.ShovelCount,
+            collectedGold = _resModel.CollectedGold,
+            cells = _gridManager.GetCellData()
+        };
+
+        _saveLoader.SaveGame(saveData);
+        Debug.Log("Game saved.");
     }
 
     public void RestartGame()
     {
+        Debug.Log("Restarting game...");
         UnBind();
         _winMenu.gameObject.SetActive(false);
-        _rewardManager.ClearAllGold(); // Удаляем все золото
-        _gridManager.ClearGrid(); // Очищаем сетку
-        StartGame(); // Заново запускаем игру
+        _rewardManager.ClearAllGold();
+        _gridManager.ClearGrid();
+
+        _saveLoader.DeleteSaveFile(); // Удаляем файл сохранения
+
+        InitializeGameFromConfig(); // Перезапуск из Config
     }
 
-    private void HandleGameWon(int collectedGold)
+    private void PlaceBagIfNeeded()
     {
-        Debug.Log("Game Won!");
-        _winMenu.Setup(collectedGold); // Показываем меню выигрыша
-    }
-
-    private void CenterCamera(Vector2 gridCenter)
-    {
-        //float cameraOffset = 2f; // Смещение камеры вниз
-        Camera.main.transform.position = new Vector3(gridCenter.x, gridCenter.y /*- cameraOffset*/, -10);
+        if (_bagInstance == null)
+        {
+            PlaceBag();
+        }
     }
 
     private void PlaceBag()
@@ -108,7 +117,6 @@ public class Bootstrap2 : MonoBehaviour
         Vector2 gridCenter = _gridManager.GetGridCenter();
         Vector2 bagPosition = new Vector2(gridCenter.x, gridCenter.y - _gameConfig.fieldSize / 2f - bagOffset);
 
-        // Создаем Bag, если он ещё не был создан
         _bagInstance = Instantiate(_bagPrefab, bagPosition, Quaternion.identity);
     }
 
@@ -116,10 +124,57 @@ public class Bootstrap2 : MonoBehaviour
     {
         _resPresenter.OnGameWon += HandleGameWon;
     }
+
     private void UnBind()
     {
         _resPresenter.OnGameWon -= HandleGameWon;
     }
 
+    private void HandleGameWon(int collectedGold)
+    {
+        Debug.Log("Game Won!");
+        _winMenu.Setup(collectedGold);
+    }
 
+    private void StartGame()
+    {
+        // Инициализация ресурсов
+        ResourceInit();
+
+        // Создаем RewardManager, если его еще нет
+        if (_rewardManager == null)
+        {
+            _rewardManager = new RewardManager(_gameConfig.goldSpawnChance, _gameConfig.goldSpawnChanceIncrement, _goldPrefab, _resPresenter);
+        }
+
+        // Инициализируем и генерируем сетку
+        _gridManager.Initialize(_gameConfig.fieldSize, _cellPrefab, _boardPrefab, _gameConfig, _resPresenter, _rewardManager);
+        _gridManager.GenerateGrid();
+
+        // Центрируем камеру
+        Vector2 gridCenter = _gridManager.GetGridCenter();
+        CenterCamera(gridCenter);
+    }
+
+    private void ResourceInit()
+    {
+        _resourceView.Init(_gameConfig.initialShovelCount, _gameConfig.requiredGoldBars);
+
+        if (_resModel == null)
+        {
+            _resModel = new ResourceModel(_gameConfig.requiredGoldBars, 0, _gameConfig.initialShovelCount);
+        }
+
+        if (_resPresenter == null)
+        {
+            _resPresenter = new ResourcePresenter(_resModel, _resourceView);
+        }
+        _resModel.ResetModel(_gameConfig.requiredGoldBars, 0, _gameConfig.initialShovelCount);
+        Bind();
+    }
+
+    private void CenterCamera(Vector2 gridCenter)
+    {
+        Camera.main.transform.position = new Vector3(gridCenter.x, gridCenter.y, -10);
+    }
 }
