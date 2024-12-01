@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RewardManager: IRewardManager
+public class RewardManager : IRewardManager
 {
     private float _spawnChance;
     private float _defaultSpawnChance;
@@ -11,6 +11,7 @@ public class RewardManager: IRewardManager
 
     // Список для отслеживания всех созданных презентеров
     private List<RewardItemPresenter> _activePresenters = new List<RewardItemPresenter>();
+
     public RewardManager(float initialSpawnChance, float incrementChance, GameObject goldPrefab, IResourceHandler resourceHandler)
     {
         _defaultSpawnChance = initialSpawnChance;
@@ -20,24 +21,13 @@ public class RewardManager: IRewardManager
         _resourceHandler = resourceHandler;
     }
 
-    // Метод для спавна золота
     public void TrySpawnGold(ICellModel cellModel, Transform cellTransform)
     {
         if (IsGoldSpawned())
         {
             Debug.Log("Gold spawn start!");
-            GameObject goldObject = _goldSpawner.SpawnGoldObject(cellTransform);
-            RewardItemModel goldModel = new RewardItemModel();  // Создаём модель золота
-            RewardItemView goldView = goldObject.GetComponent<RewardItemView>();  // Получаем View золота
-
-
-            var presenter = new RewardItemPresenter(goldModel, goldView, cellModel, this, _resourceHandler); // Создаём Presenter золота
-
-            _activePresenters.Add(presenter); // Добавляем презентер в список активных  // Создаём Presenter золота
-
-            cellModel.GoldSpawned();  // Связываем золото с клеткой
+            SpawnGold(cellModel, cellTransform);
             ResetSpawnChance();
-            Debug.Log("Gold spawn end!");
         }
         else
         {
@@ -45,31 +35,35 @@ public class RewardManager: IRewardManager
         }
     }
 
+    // Принудительный спавн золота
     public void ForceSpawnGold(ICellModel cellModel, Transform cellTransform)
     {
         Debug.Log("Force spawning gold!");
-        GameObject goldObject = _goldSpawner.SpawnGoldObject(cellTransform); // Спавним объект золота
-        RewardItemModel goldModel = new RewardItemModel();  // Создаём модель золота
-        RewardItemView goldView = goldObject.GetComponent<RewardItemView>();  // Получаем View золота
+        SpawnGold(cellModel, cellTransform);
+    }
 
-        // Создаём Presenter золота
+    private void SpawnGold(ICellModel cellModel, Transform cellTransform)
+    {
+        GameObject goldObject = _goldSpawner.SpawnGoldObject(cellTransform);
+        RewardItemModel goldModel = new RewardItemModel();
+        RewardItemView goldView = goldObject.GetComponent<RewardItemView>();  
+
         var presenter = new RewardItemPresenter(goldModel, goldView, cellModel, this, _resourceHandler);
-        _activePresenters.Add(presenter); // Добавляем презентер в список
+        _activePresenters.Add(presenter);
 
-        cellModel.GoldSpawned(); // Уведомляем модель клетки, что золото заспавнено
-        Debug.Log("Gold force-spawned successfully!");
+        cellModel.GoldSpawned(); 
+        Debug.Log("Gold spawn completed!");
     }
 
     public void ClearAllGold()
     {
         foreach (var presenter in _activePresenters)
         {
-            var view = presenter.GetRewItemView();
+            var view = presenter.GetRewardItemView();
             if (view != null)
             {
                 Object.Destroy(view.gameObject);
             }
-
             presenter.Dispose();
         }
         _activePresenters.Clear();

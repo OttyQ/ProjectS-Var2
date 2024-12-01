@@ -1,147 +1,181 @@
-//using Unity.VisualScripting;
-//using UnityEngine;
+using UnityEngine;
 
+public class Bootstrap : MonoBehaviour
+{
+    // Поля
+    [SerializeField] private Config _gameConfig;
+    [SerializeField] private GridManager _gridManager;
+    [SerializeField] private ResourceView _resourceView;
+    [SerializeField] private WinMenu _winMenu;
 
-///// <summary>
-///// Класс для инициализации.
-///// Включает в себя загрузку сохраненных данных, настройку зависимостей, сохранение данных и подписку на события.
-///// </summary>
-//public class Bootstrap : MonoBehaviour
-//{
-//    [Header("Req Elements")]
-//    [SerializeField] private RewardManager rewardManager;
-//    [SerializeField] private View view;
-//    [SerializeField] private GridFill gridFill;
-//    [SerializeField] private WinMenu winMenu;
-//    [SerializeField] private GameObject cellPrefab;
-//    [SerializeField] private Transform gridParent;
-//    [SerializeField] private GameObject goldPrefab;
-//    [SerializeField] private UIBag bag;
-//    [SerializeField] private GameState gameState;
+    [SerializeField] private GameObject _cellPrefab;
+    [SerializeField] private GameObject _goldPrefab;
+    [SerializeField] private GameObject _bagPrefab;
+    [SerializeField] private SpriteRenderer _boardPrefab;
 
-//    private CountHandler countHandler;
-//    private SaverLoader saverLoader;
-//    private GameSaveData gameSaveData;
-//    private Config config;
+    private ResourceModel _resourceModel;
+    private ResourcePresenter _resourcePresenter;
+    private RewardManager _rewardManager;
+    private GameObject _bagInstance;
+    private SaverLoader _saveLoader;
 
-//    private void Awake()
-//    {
-//        config = GameConfigProvider.instance.GameConfig;
-//        InitializeGame();
-//    }
+    // Unity методы
+    private void Start()
+    {
+        if (_gameConfig == null)
+        {
+            Debug.LogError("GameConfig is not assigned in Bootstrap!");
+            return;
+        }
 
-//    private void OnDisable()
-//    {
-//        UnsubscribeEvents();
-//    }
+        _saveLoader = new SaverLoader();
 
-//    public void OnApplicationQuit() => SaveData();
-//    public void OnApplicationPause(bool pause)
-//    {
-//        if (pause) SaveData();
-//    }
+        var savedData = _saveLoader.LoadGame();
+        if (savedData != null)
+        {
+            LoadGame(savedData);
+        }
+        else
+        {
+            InitializeGameFromConfig();
+        }
+    }
 
-//    private void RestartGame()
-//    {
-//        Debug.Log("Bootstrap restarting game...");
-//        saverLoader.DeleteSaveFile();
-//        UnsubscribeEvents();
-//        InitializeGame();
-//    }
+    private void OnDisable()
+    {
+        UnbindEvents();
+    }
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause) SaveGame();
+    }
+    private void OnApplicationQuit()
+    {
+        SaveGame();
+    }
 
-//    public void InitializeGame()
-//    {
-//        Debug.Log("Initializing game...");
-//        AssignDependencies();
-//        if (gameSaveData != null)
-//        {
-//            Debug.Log("Initializing from saved data...");
-//            InitialFromSaveData();
-//        }
-//        else
-//        {
-//            Debug.Log("Initializing from config...");
-//            InitialFromConfig();
-//        }
-//        SubscribeEvents();
-//        Debug.Log("Initialization complete.");
-//    }
+    // Логика игры
+    private void InitializeGameFromConfig()
+    {
+        Debug.Log("Initializing game from Config...");
+        StartGame();
+        PlaceBagIfNeeded();
+    }
 
-//    private void SaveData()
-//    {
-//        Debug.Log("Saving game data...");
-//        GameSaveData saveData = new GameSaveData
-//        {
-//            shovels = countHandler.GetRemainingShovels(),
-//            collectedGold = countHandler.GetCollectedRewards(),
-//            cells = gridFill.GetCellsData()
-//        };
+    private void LoadGame(GameSaveData savedData)
+    {
+        Debug.Log("Loading game from save file...");
 
-//        saverLoader.SaveGame(saveData);
-//    }
+        InitializeResources(savedData.shovels, savedData.collectedGold);
+        InitializeRewardManager();
+        BindEvents();
 
-//    private void InitialFromConfig()
-//    {
-//        countHandler.Initialize(config.initialShovelCount, config.requiredGoldBars);
-//        InitializeCommon();
-//        gridFill.InitializeGrid(config.fieldSize);
-//    }
+        _gridManager.Initialize(_gameConfig.FieldSize, _cellPrefab, _boardPrefab, _gameConfig, _resourcePresenter, _rewardManager);
+        _gridManager.HandleGenerateGrid(savedData.cells);
+        CenterCamera(_gridManager.GetGridCenter());
+        PlaceBagIfNeeded();
 
-//    private void InitialFromSaveData()
-//    {
-//        countHandler.Initialize(gameSaveData.shovels, config.requiredGoldBars, gameSaveData.collectedGold);
-//        InitializeCommon();
-//        gridFill.InitializeGridFromData(gameSaveData.cells, rewardManager);
-//        gridFill.DataGridSpawnGold(rewardManager);
-//    }
+        Debug.Log("Game successfully loaded.");
+    }
 
-//    /// <summary>
-//    /// Общая инициализация элементов игры, не зависящая от конфигурации или сохраненных данных.
-//    /// </summary>
-//    private void InitializeCommon()
-//    {
-//        rewardManager.Initialize(config.goldSpawnChance, config.goldSpawnChanceIncrement, goldPrefab);
-//        gameState.Initialize(winMenu, countHandler);
-//        gridFill.Initialize(gridParent, cellPrefab, config.maxDepth, countHandler);
-//    }
+    private void SaveGame()
+    {
+        var saveData = new GameSaveData
+        {
+            shovels = _resourceModel.ShovelCount,
+            collectedGold = _resourceModel.CollectedGold,
+            cells = _gridManager.GetCellData()
+        };
 
-//    private void AssignDependencies()
-//    {
-//        countHandler ??= GetComponent<CountHandler>();
-//        view ??= GetComponent<View>();
-//        rewardManager ??= GetComponent<RewardManager>();
-//        bag ??= FindObjectOfType<UIBag>();
-//        gameState ??= GetComponent<GameState>();
-//        saverLoader ??= GetComponent<SaverLoader>();
-//        gameSaveData = saverLoader.LoadGame();
-//        Debug.Log($"GameSaveData loaded: {gameSaveData != null}");
-//    }
+        _saveLoader.SaveGame(saveData);
+        Debug.Log("Game saved.");
+    }
 
-//    /// <summary>
-//    /// Подписка/отписка на события в зависимости от флага.
-//    /// </summary>
-//    private void ConfigureEvents(bool subscribe)
-//    {
-//        if (subscribe)
-//        {
-//            rewardManager.SubscribeToCellEvents(gridFill.GetCells());
-//            countHandler.OnAllRewardCollected += gameState.Win;
-//            countHandler.OnShovelCountChanged += view.UpdateShovelCount;
-//            countHandler.OnRewardCountChanged += view.UpdateRewardCount;
-//            bag.OnGoldAddedToBag += countHandler.CollectReward;
-//            gameState.OnGameRestart += RestartGame;
-//            countHandler.UpdateView();
-//        }
-//        else
-//        {
-//            countHandler.OnAllRewardCollected -= gameState.Win;
-//            countHandler.OnShovelCountChanged -= view.UpdateShovelCount;
-//            countHandler.OnRewardCountChanged -= view.UpdateRewardCount;
-//            bag.OnGoldAddedToBag -= countHandler.CollectReward;
-//            gameState.OnGameRestart -= RestartGame;
-//        }
-//    }
+    public void RestartGame()
+    {
+        Debug.Log("Restarting game...");
+        UnbindEvents();
+        _winMenu.gameObject.SetActive(false);
+        _rewardManager.ClearAllGold();
+        _gridManager.ClearGrid();
 
-//    private void SubscribeEvents() => ConfigureEvents(true);
-//    private void UnsubscribeEvents() => ConfigureEvents(false);
-//}
+        _saveLoader.DeleteSaveFile();
+
+        InitializeGameFromConfig();
+    }
+
+    // Приватные методы
+    private void StartGame()
+    {
+        InitializeResources(_gameConfig.InitialShovelCount, 0);
+        InitializeRewardManager();
+
+        _gridManager.Initialize(_gameConfig.FieldSize, _cellPrefab, _boardPrefab, _gameConfig, _resourcePresenter, _rewardManager);
+        _gridManager.GenerateGrid();
+        BindEvents();
+        CenterCamera(_gridManager.GetGridCenter());
+    }
+
+    private void InitializeResources(int shovels, int collectedGold)
+    {
+        _resourceView.Init(shovels, _gameConfig.RequiredGoldBars, collectedGold);
+
+        if(_resourceModel == null)
+        {
+            _resourceModel = new ResourceModel(_gameConfig.RequiredGoldBars, collectedGold, shovels);
+        } 
+        else
+        {
+            _resourceModel.ResetModel(_gameConfig.RequiredGoldBars, collectedGold, shovels);
+        }
+        
+        _resourcePresenter = new ResourcePresenter(_resourceModel, _resourceView);
+        BindEvents();
+    }
+
+    private void InitializeRewardManager()
+    {
+        if (_rewardManager == null)
+        {
+            _rewardManager = new RewardManager(_gameConfig.GoldSpawnChance, _gameConfig.GoldSpawnChanceIncrement, _goldPrefab, _resourcePresenter);
+        }
+    }
+
+    private void PlaceBagIfNeeded()
+    {
+        if (_bagInstance == null)
+        {
+            PlaceBag();
+        }
+    }
+
+    private void PlaceBag()
+    {
+        float bagOffset = 1f;
+        Vector2 gridCenter = _gridManager.GetGridCenter();
+        Vector2 bagPosition = new Vector2(gridCenter.x, gridCenter.y - _gameConfig.FieldSize / 2f - bagOffset);
+
+        _bagInstance = Instantiate(_bagPrefab, bagPosition, Quaternion.identity);
+    }
+
+    private void CenterCamera(Vector2 gridCenter)
+    {
+        Camera.main.transform.position = new Vector3(gridCenter.x, gridCenter.y, -10);
+    }
+
+    private void BindEvents()
+    {
+        _resourcePresenter.OnGameWon += HandleGameWon;
+    }
+
+    private void UnbindEvents()
+    {
+        _resourcePresenter.OnGameWon -= HandleGameWon;
+    }
+
+    private void HandleGameWon(int collectedGold)
+    {
+        Debug.Log("Game Won!");
+        _winMenu.Setup(collectedGold);
+    }
+}

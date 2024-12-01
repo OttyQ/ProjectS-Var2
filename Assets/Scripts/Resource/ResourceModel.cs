@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 public class ResourceModel
 {
@@ -22,17 +19,29 @@ public class ResourceModel
 
     public void IncreaseCollectedGold()
     {
-        if(_collectedGold < _requiredGold)
-        _collectedGold++;
+        if (_collectedGold < _requiredGold)
+        {
+            _collectedGold++;
+            Console.WriteLine($"Collected gold increased: {_collectedGold}/{_requiredGold}");
+        }
+        else
+        {
+            Console.WriteLine("Cannot increase collected gold: limit reached.");
+        }
     }
 
     public void DecreaseShovelCount()
     {
-        Console.WriteLine("ResourceModel DecreaseShovelCount invoke!");
+        Console.WriteLine("ResourceModel DecreaseShovelCount invoked!");
 
         if (_shovelCount > 0)
         {
             _shovelCount--;
+            Console.WriteLine($"Shovel count decreased: {_shovelCount}");
+        }
+        else
+        {
+            Console.WriteLine("Cannot decrease shovel count: no shovels left.");
         }
     }
 
@@ -43,4 +52,3 @@ public class ResourceModel
         _shovelCount = shovelCount;
     }
 }
-

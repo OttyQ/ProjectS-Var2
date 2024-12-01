@@ -1,9 +1,10 @@
 using System;
+using UnityEngine;
 
 public class ResourcePresenter : IResourceHandler
 {
-    private ResourceModel _resourceModel;
-    private ResourceView _resourceView;
+    private readonly ResourceModel _resourceModel;
+    private readonly ResourceView _resourceView;
 
     public event Action<int> OnGameWon;
 
@@ -15,9 +16,16 @@ public class ResourcePresenter : IResourceHandler
 
     public void UseShovel()
     {
-        Console.WriteLine("ResourcePresenter UseShovel invoke!");
-        _resourceModel.DecreaseShovelCount();
-        _resourceView.UpdateShovelView(_resourceModel.ShovelCount);
+        Debug.Log("ResourcePresenter: UseShovel invoked.");
+        if (_resourceModel.ShovelCount > 0)
+        {
+            _resourceModel.DecreaseShovelCount();
+            _resourceView.UpdateShovelView(_resourceModel.ShovelCount);
+        }
+        else
+        {
+            Debug.LogWarning("ResourcePresenter: No shovels left.");
+        }
     }
 
     public void AddGold()
@@ -25,9 +33,9 @@ public class ResourcePresenter : IResourceHandler
         _resourceModel.IncreaseCollectedGold();
         _resourceView.UpdateGoldView(_resourceModel.CollectedGold, _resourceModel.RequiredGold);
 
-        //условие победы
         if (_resourceModel.CollectedGold == _resourceModel.RequiredGold)
         {
+            Debug.Log("ResourcePresenter: Victory condition met.");
             OnGameWon?.Invoke(_resourceModel.CollectedGold);
         }
     }
@@ -36,7 +44,4 @@ public class ResourcePresenter : IResourceHandler
     {
         return _resourceModel.ShovelCount > 0;
     }
-
-   
 }
-

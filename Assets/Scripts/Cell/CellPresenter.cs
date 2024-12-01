@@ -14,12 +14,27 @@ public class CellPresenter
         _resourceHandler = resourceHandler;
         _rewardManager = rewardManager;
 
-        Bind();
+        SubscribeEvents();
     }
 
-    public void Bind()
+    public void Dispose()
+    {
+        UnsubscribeEvents();
+        _cellView.ResetEvents(); // —брасываем событи€
+        _cellModel = null;
+        _cellView = null;
+        _resourceHandler = null;
+        _rewardManager = null;
+    }
+
+    private void SubscribeEvents()
     {
         _cellView.OnCellClicked += OnCellDigged;
+    }
+
+    private void UnsubscribeEvents()
+    {
+        _cellView.OnCellClicked -= OnCellDigged;
     }
 
     private void OnCellDigged()
@@ -40,27 +55,10 @@ public class CellPresenter
         }
     }
 
-    public bool CanDig()
+    private bool CanDig()
     {
-        return (_cellModel.CurrentDepth < _cellModel.MaxDepth && !_cellModel.HasGold && _resourceHandler.CanDig());
-    }
-
-    public void UnBind()
-    {
-        if (_cellView != null)
-        {
-            _cellView.OnCellClicked -= OnCellDigged;
-        }
-    }
-
-    public void Dispose()
-    {
-        UnBind();
-        _cellView.ResetEvents(); // —брасываем событи€
-        _cellModel = null;
-        _cellView = null;
-        _resourceHandler = null;
+        return _cellModel.CurrentDepth < _cellModel.MaxDepth &&
+               !_cellModel.HasGold &&
+               _resourceHandler.CanDig();
     }
 }
-
-

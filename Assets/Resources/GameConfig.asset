@@ -15,6 +15,6 @@ MonoBehaviour:
   _fieldSize: 4
   _maxDepth: 3
   _initialShovelCount: 20
-  _requiredGoldBars: 10
+  _requiredGoldBars: 8
   _goldSpawnChance: 0.3
   _goldSpawnChanceIncrement: 0.1
