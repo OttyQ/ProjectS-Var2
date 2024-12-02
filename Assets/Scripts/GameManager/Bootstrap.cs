@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class Bootstrap : MonoBehaviour
 {
-    // Поля
     [SerializeField] private Config _gameConfig;
     [SerializeField] private GridManager _gridManager;
     [SerializeField] private ResourceView _resourceView;
@@ -19,7 +18,6 @@ public class Bootstrap : MonoBehaviour
     private GameObject _bagInstance;
     private SaverLoader _saveLoader;
 
-    // Unity методы
     private void Start()
     {
         if (_gameConfig == null)
@@ -104,7 +102,6 @@ public class Bootstrap : MonoBehaviour
         InitializeGameFromConfig();
     }
 
-    // Приватные методы
     private void StartGame()
     {
         InitializeResources(_gameConfig.InitialShovelCount, 0);

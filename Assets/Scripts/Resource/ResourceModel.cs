@@ -22,27 +22,15 @@ public class ResourceModel
         if (_collectedGold < _requiredGold)
         {
             _collectedGold++;
-            Console.WriteLine($"Collected gold increased: {_collectedGold}/{_requiredGold}");
-        }
-        else
-        {
-            Console.WriteLine("Cannot increase collected gold: limit reached.");
         }
     }
 
     public void DecreaseShovelCount()
     {
-        Console.WriteLine("ResourceModel DecreaseShovelCount invoked!");
-
         if (_shovelCount > 0)
         {
             _shovelCount--;
-            Console.WriteLine($"Shovel count decreased: {_shovelCount}");
-        }
-        else
-        {
-            Console.WriteLine("Cannot decrease shovel count: no shovels left.");
-        }
+        }      
     }
 
     public void ResetModel(int requiredGold, int collectedGold, int shovelCount)
