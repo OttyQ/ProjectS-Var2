@@ -5,7 +5,7 @@ public class CellModel : ICellModel
     private int _maxDepth;
     private int _currentDepth;
     private bool _hasGold;
-
+    
     public CellModel(int curDepth, int maxDepth, bool hasGold)
     {
         _currentDepth = curDepth;
