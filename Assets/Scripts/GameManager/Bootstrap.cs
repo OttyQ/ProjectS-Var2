@@ -6,6 +6,7 @@ public class Bootstrap : MonoBehaviour
     [SerializeField] private GridManager _gridManager;
     [SerializeField] private ResourceView _resourceView;
     [SerializeField] private WinMenu _winMenu;
+    [SerializeField] private GameObject _aboutMenu;
 
     [SerializeField] private GameObject _cellPrefab;
     [SerializeField] private GameObject _goldPrefab;
@@ -100,6 +101,12 @@ public class Bootstrap : MonoBehaviour
         _saveLoader.DeleteSaveFile();
 
         InitializeGameFromConfig();
+    }
+    
+    public void AboutGame()
+    {
+        Debug.Log("About game...");
+        _aboutMenu.gameObject.SetActive(true);
     }
 
     private void StartGame()
