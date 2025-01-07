@@ -8,6 +8,14 @@ public class GameSaveData
     public int shovels;
     public int collectedGold;
     public List<CellData> cells;
+    
+    // Новые поля для сохранения прогрессии
+    public int fieldSize;
+    public int maxDepth;
+    public int maxShovels;
+    public int requiredGoldBars;
+    public float goldSpawnChance;
+    public float goldSpawnChanceIncrement;
 }
 
 [System.Serializable]

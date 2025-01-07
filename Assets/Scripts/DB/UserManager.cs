@@ -1,7 +1,8 @@
 using System;
 using System.Text;
 using System.Linq;
-using Unity.VisualScripting.Dependencies.Sqlite;
+using SQLite;
+using Mono.Data.Sqlite;
 using UnityEngine;
 
 public class UserManager

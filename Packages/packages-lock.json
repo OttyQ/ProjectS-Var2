@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.gilzoide.sqlite-net": {
+      "version": "https://github.com/gilzoide/unity-sqlite-net.git#1.1.1",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "17d07e7c757c0a390611bbecc11719d48adc3571"
+    },
     "com.unity.2d.animation": {
       "version": "9.1.1",
       "depth": 1,

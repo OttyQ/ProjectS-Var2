@@ -9,7 +9,7 @@ public class RewardManager : IRewardManager
     private GoldSpawner _goldSpawner;
     private IResourceHandler _resourceHandler;
 
-    // Список для отслеживания всех созданных презентеров
+    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     private List<RewardItemPresenter> _activePresenters = new List<RewardItemPresenter>();
 
     public RewardManager(float initialSpawnChance, float incrementChance, GameObject goldPrefab, IResourceHandler resourceHandler)
@@ -21,6 +21,11 @@ public class RewardManager : IRewardManager
         _resourceHandler = resourceHandler;
     }
 
+    public void RewardManagerProgression(float spawnChance, float incrementChance)
+    {
+        _defaultSpawnChance = spawnChance;
+        _chanceIncrement = incrementChance;
+    }
     public void TrySpawnGold(ICellModel cellModel, Transform cellTransform)
     {
         if (IsGoldSpawned())
@@ -35,7 +40,7 @@ public class RewardManager : IRewardManager
         }
     }
 
-    // Принудительный спавн золота
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     public void ForceSpawnGold(ICellModel cellModel, Transform cellTransform)
     {
         Debug.Log("Force spawning gold!");

@@ -5,6 +5,7 @@ public class ResourceModel
     private int _requiredGold;
     private int _collectedGold;
     private int _shovelCount;
+    
 
     public ResourceModel(int requiredGold, int collectedGold, int shovelCount)
     {

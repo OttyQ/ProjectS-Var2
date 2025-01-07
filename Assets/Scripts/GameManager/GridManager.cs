@@ -7,7 +7,7 @@ public class GridManager : MonoBehaviour
     private int _size;
     private GameObject _cellPrefab;
     private SpriteRenderer _boardPrefab;
-    private Config _gameConfig;
+    private int _maxDepth;
     private IResourceHandler _resourcePresenter;
     private SpriteRenderer _board;
     private IRewardManager _rewardManager;
@@ -17,12 +17,12 @@ public class GridManager : MonoBehaviour
     private List<CellPresenter> _presenters; //cписок презентеров клеток
 
     // Методы
-    public void Initialize(int size, GameObject cellPrefab, SpriteRenderer boardPrefab, Config gameConfig, IResourceHandler resourcePresenter, IRewardManager rewardManager)
+    public void Initialize(int size, GameObject cellPrefab, SpriteRenderer boardPrefab, int maxDepth, IResourceHandler resourcePresenter, IRewardManager rewardManager)
     {
         _size = size;
         _cellPrefab = cellPrefab;
         _boardPrefab = boardPrefab;
-        _gameConfig = gameConfig;
+        _maxDepth = maxDepth;
         _resourcePresenter = resourcePresenter;
         _rewardManager = rewardManager;
 
@@ -38,13 +38,13 @@ public class GridManager : MonoBehaviour
         {
             for (int y = 0; y < _size; y++)
             {
-                CreateCell(x, y, new CellModel(0, _gameConfig.MaxDepth, false));
+                CreateCell(x, y, new CellModel(0, _maxDepth, false));
             }
         }
         SetupGrid();
     }
 
-    public void HandleGenerateGrid(List<CellData> cellsData)
+    public void HandleGenerateGrid(List<CellData> cellsData, int saveMaxDepth)
     {
         ClearGrid();
         if (cellsData == null || cellsData.Count == 0)
@@ -61,7 +61,7 @@ public class GridManager : MonoBehaviour
                 if (index >= cellsData.Count) break;
 
                 CellData cellData = cellsData[index];
-                var cellModel = new CellModel(cellData.depth, _gameConfig.MaxDepth, cellData.hasGold);
+                var cellModel = new CellModel(cellData.depth, saveMaxDepth, cellData.hasGold);
                 var cellObject = CreateCell(x, y, cellModel);
 
                 if (cellData.hasGold)
