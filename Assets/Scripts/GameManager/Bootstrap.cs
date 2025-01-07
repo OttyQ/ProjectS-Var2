@@ -298,5 +298,6 @@ public class Bootstrap : MonoBehaviour
     {
         Debug.Log("Game Won!");
         _winMenu.Setup(collectedGold);
+        _dbManager.UpdateLeaderBoard(_currentUserId, _resourceModel.CollectedGold);
     }
 }

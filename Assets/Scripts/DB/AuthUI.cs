@@ -13,6 +13,7 @@ public class AuthUI : MonoBehaviour
     [SerializeField] private Button _loginButton;
     [SerializeField] private Button _registerButton;
     [SerializeField] private TMP_Text _errorText;
+    [SerializeField] private GameObject _leaderBoard;
     
     private UserManager _userManager;
 
@@ -91,5 +92,15 @@ public class AuthUI : MonoBehaviour
     {
         yield return new WaitForSeconds(delay); // Ждем указанное время
         messageText.text = ""; // Очищаем текст
+    }
+
+    public void showLeaderBoard()
+    {
+        _leaderBoard.SetActive(true);
+    }
+
+    public void hideLeaderBoard()
+    {
+        _leaderBoard.SetActive(false);
     }
 }

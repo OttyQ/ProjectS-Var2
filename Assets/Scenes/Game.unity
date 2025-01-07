@@ -2334,7 +2334,6 @@ MonoBehaviour:
   _resourceView: {fileID: 161611249}
   _winMenu: {fileID: 1317426844}
   _aboutMenu: {fileID: 1372210150}
-  _resButton: {fileID: 0}
   _cellPrefab: {fileID: 2042424491662074465, guid: 820ca1eb4acc3b44ea0040165f687254, type: 3}
   _goldPrefab: {fileID: 8554550794496079616, guid: 4bb42dc3b083fe645b17fd9a25a706e2, type: 3}
   _bagPrefab: {fileID: 8341276827366942796, guid: e2fcc295ddb20f64fb80495b2954bed9, type: 3}

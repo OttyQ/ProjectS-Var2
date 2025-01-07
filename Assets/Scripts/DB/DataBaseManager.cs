@@ -20,7 +20,43 @@ public class DataBaseManager
     {
         // Открытие или создание базы данных
         _db = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create);
-        _db.CreateTable<GameState>(); // Создаем таблицу, если она не существует
+        
+        _db.Execute("PRAGMA foreign_keys = ON;"); // Включение поддержки внешних ключей
+        CreateGsTableWithForeignKey();
+        CreateLbTableWithForeignKey();
+    }
+
+    private void CreateGsTableWithForeignKey()
+    {
+        _db.Execute($@"
+        CREATE TABLE IF NOT EXISTS GameState (
+            SaveID INTEGER PRIMARY KEY AUTOINCREMENT,
+            UserID INTEGER NOT NULL,
+            Shovels INTEGER,
+            MaxShovels INTEGER,
+            CollectedGold INTEGER,
+            CellsData TEXT NOT NULL,
+            FieldSize INTEGER,
+            MaxDepth INTEGER,
+            RequiredGoldBars INTEGER,
+            GoldSpawnChance REAL,
+            GoldSpawnChanceIncrement REAL,
+            FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+        );
+    ");
+    }
+
+    private void CreateLbTableWithForeignKey()
+    {
+        _db.Execute($@"
+        CREATE TABLE IF NOT EXISTS LeaderBoard (
+            LeaderBoardID INTEGER PRIMARY KEY AUTOINCREMENT,
+            UserID INTEGER NOT NULL,
+            MaxScore INTEGER NOT NULL,
+            Timestamp TEXT NOT NULL,
+            FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+        );
+        ");
     }
 
     /// <summary>
@@ -121,7 +157,71 @@ public class DataBaseManager
             return null;
         }
     }
+
+    public void UpdateLeaderBoard(int userId, int score)
+    {
+        try
+        {
+            // Проверяем текущий рекорд пользователя
+            var existingRecord = _db.Table<LeaderBoard>().FirstOrDefault(lb => lb.UserID == userId);
+
+            if (existingRecord != null)
+            {
+                if (score > existingRecord.MaxScore)
+                {
+                    // Обновляем рекорд
+                    existingRecord.MaxScore = score;
+                    existingRecord.Timestamp = DateTime.UtcNow.ToString("o"); // ISO 8601 формат
+                    _db.Update(existingRecord);
+                    Debug.Log($"LeaderBoard updated for user {userId} with new score: {score}");
+                }
+            }
+            else
+            {
+                // Создаем новую запись
+                var newRecord = new LeaderBoard
+                {
+                    UserID = userId,
+                    MaxScore = score,
+                    Timestamp = DateTime.UtcNow.ToString("o")
+                };
+                _db.Insert(newRecord);
+                Debug.Log($"New LeaderBoard record created for user {userId} with score: {score}");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Failed to update LeaderBoard for user {userId}: {e.Message}");
+        }
+    }
+
+    public List<LeaderBoardEntry> GetLeaderBoard()
+    {
+        var query = @"
+        SELECT u.Username, lb.MaxScore, lb.Timestamp 
+        FROM LeaderBoard lb
+        INNER JOIN Users u ON lb.UserID = u.UserID
+        ORDER BY lb.MaxScore DESC
+        LIMIT 10;";
+
+        var entries = _db.Query<LeaderBoardEntryQueryResult>(query);
+
+        // Конвертируем результат запроса в список LeaderBoardEntry
+        var leaderBoardEntries = new List<LeaderBoardEntry>();
+        foreach (var entry in entries)
+        {
+            leaderBoardEntries.Add(new LeaderBoardEntry
+            {
+                Username = entry.Username,
+                MaxScore = entry.MaxScore,
+                Timestamp = System.DateTime.Parse(entry.Timestamp)
+            });
+        }
+
+        return leaderBoardEntries;
+    }
 }
+
 
 /// <summary>
 /// Модель таблицы для хранения состояния игры.
@@ -147,4 +247,20 @@ public class GameState
     public int RequiredGoldBars { get; set; } // Необходимое золото для победы
     public float GoldSpawnChance { get; set; } // Шанс появления золота
     public float GoldSpawnChanceIncrement { get; set; } // Увеличение шанса появления золота
+}
+
+[Table("LeaderBoard")]
+public class LeaderBoard
+{
+    [PrimaryKey, AutoIncrement]
+    public int LeaderBoardID { get; set; } // Уникальный идентификатор записи
+
+    [NotNull]
+    public int UserID { get; set; } // Внешний ключ для связи с таблицей Users
+
+    [NotNull]
+    public int MaxScore { get; set; } // Максимальный счет пользователя
+
+    [NotNull]
+    public string Timestamp { get; set; } // Дата и время установки рекорда (в формате ISO 8601)
 }
