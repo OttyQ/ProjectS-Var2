@@ -4,6 +4,7 @@
     <file url="file://$PROJECT_DIR$/Assets/Resources/GameSaveData.cs" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/Assets/Scripts/Cell/CellPresenter.cs" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/Assets/Scripts/GameManager/Bootstrap.cs" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/Assets/Scripts/GameManager/GridManager.cs" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/Assets/Scripts/GameManager/SaverLoader.cs" charset="windows-1251" />
   </component>
 </project>

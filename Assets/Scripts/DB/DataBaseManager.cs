@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Unity.VisualScripting.Dependencies.Sqlite;
+
 using UnityEngine;
 
 public class DataBaseManager
@@ -18,20 +20,52 @@ public class DataBaseManager
     {
         try
         {
-            var gameState = new GameState
+            if (saveData.cells == null || saveData.cells.Count == 0)
             {
-                UserID = userId,
-                Shovels = saveData.shovels,
-                CollectedGold = saveData.collectedGold,
-                CellsData = JsonUtility.ToJson(saveData.cells)
-            };
+                Debug.LogError("SaveGame: cells data is null or empty!");
+                return;
+            }
 
-            _db.InsertOrReplace(gameState);
-            Debug.Log("Game state saved successfully");
+            Debug.Log("Cells data before serialization:");
+            foreach (var cell in saveData.cells)
+            {
+                Debug.Log($"Cell: depth={cell.depth}, hasGold={cell.hasGold}");
+            }
+
+            var jsonCells = JsonConvert.SerializeObject(saveData.cells);
+            Debug.Log($"Serialized CellsData: {jsonCells}");
+
+            // Проверяем существующую запись для данного пользователя
+            var existingGameState = _db.Table<GameState>().FirstOrDefault(g => g.UserID == userId);
+
+            if (existingGameState != null)
+            {
+                // Если запись существует, обновляем ее
+                existingGameState.Shovels = saveData.shovels;
+                existingGameState.CollectedGold = saveData.collectedGold;
+                existingGameState.CellsData = jsonCells;
+
+                _db.Update(existingGameState);
+                Debug.Log($"Game state for user {userId} updated successfully");
+            }
+            else
+            {
+                // Если записи нет, создаем новую
+                var newGameState = new GameState
+                {
+                    UserID = userId,
+                    Shovels = saveData.shovels,
+                    CollectedGold = saveData.collectedGold,
+                    CellsData = jsonCells
+                };
+
+                _db.Insert(newGameState);
+                Debug.Log($"Game state for user {userId} saved successfully");
+            }
         }
         catch (Exception e)
         {
-            Debug.LogError($"Failed to save game state: {e.Message}");
+            Debug.LogError($"Failed to save game state for user {userId}: {e.Message}");
         }
     }
 
@@ -45,7 +79,7 @@ public class DataBaseManager
             {
                 shovels = gameState.Shovels,
                 collectedGold = gameState.CollectedGold,
-                cells = JsonUtility.FromJson<List<CellData>>(gameState.CellsData)
+                cells = JsonConvert.DeserializeObject<List<CellData>>(gameState.CellsData)
             };
         }
         catch (Exception e)
@@ -64,10 +98,12 @@ public class GameState
     [PrimaryKey, AutoIncrement]
     public int SaveID { get; set; }
 
-    [NotNull]
+    [NotNull, Unique]
     public int UserID { get; set; }
 
     public int Shovels { get; set; }
     public int CollectedGold { get; set; }
+    
+    [NotNull]
     public string CellsData { get; set; } // JSON-строка
 }

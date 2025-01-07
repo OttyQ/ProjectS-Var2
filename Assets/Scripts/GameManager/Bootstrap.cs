@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Bootstrap : MonoBehaviour
@@ -18,6 +19,8 @@ public class Bootstrap : MonoBehaviour
     private RewardManager _rewardManager;
     private GameObject _bagInstance;
     private SaverLoader _saveLoader;
+    private DataBaseManager _dbManager;
+    private int _currentUserId;
 
     private void Start()
     {
@@ -28,15 +31,58 @@ public class Bootstrap : MonoBehaviour
         }
 
         _saveLoader = new SaverLoader();
-
-        var savedData = _saveLoader.LoadGame();
-        if (savedData != null)
+        _dbManager = new DataBaseManager(Application.persistentDataPath +  "/game.db");
+        
+        //получаем текущий UserId из PlayerPrefs
+        _currentUserId = PlayerPrefs.GetInt("UserId", -1);
+        if (_currentUserId == -1)
         {
-            LoadGame(savedData);
+            Debug.LogError("No UserId found in PlayerPrefs!");
+            InitializeGameFromConfig();
+            return;
+        }
+        var dbData = LoadGameFromDataBase(_currentUserId);
+        if (dbData != null)
+        {
+            Debug.Log("Load form db!");
+            LoadGame(dbData);
         }
         else
         {
-            InitializeGameFromConfig();
+            // //если не удалось получить данные из бд, то загружаемся  с json
+            // var savedData = _saveLoader.LoadGame();
+            // if (savedData != null)
+            // {
+            //     Debug.Log("Load form json!");
+            //     LoadGame(savedData);
+            // }
+            // else
+            // {
+            
+                //если нет json, то берем параметры из config
+                Debug.Log("Load form config!");
+                InitializeGameFromConfig();
+            // }
+        }
+        
+    }
+
+    private GameSaveData LoadGameFromDataBase(int userId)
+    {
+        try
+        {
+            Debug.Log("Attempting to load game state from database...");
+            var dbData = _dbManager.LoadGame(userId);
+            if (dbData == null)
+            {
+                Debug.LogWarning("No game state found in database for user.");
+            }
+            return dbData;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Failed to load game state from database: {e.Message}");
+            return null;
         }
     }
 
@@ -85,8 +131,13 @@ public class Bootstrap : MonoBehaviour
             collectedGold = _resourceModel.CollectedGold,
             cells = _gridManager.GetCellData()
         };
-
+        
+        //сохраняем в json
         _saveLoader.SaveGame(saveData);
+        
+        //сохраняем в бд
+        _dbManager.SaveGame(_currentUserId, saveData);
+        
         Debug.Log("Game saved.");
     }
 
@@ -99,6 +150,7 @@ public class Bootstrap : MonoBehaviour
         _gridManager.ClearGrid();
 
         _saveLoader.DeleteSaveFile();
+        //_dbManager.SaveGame(_currentUserId, null); // Сбрасываем состояние игры в БД
 
         InitializeGameFromConfig();
     }
@@ -164,7 +216,7 @@ public class Bootstrap : MonoBehaviour
 
     private void CenterCamera(Vector2 gridCenter)
     {
-        Camera.main.transform.position = new Vector3(gridCenter.x, gridCenter.y, -10);
+        if (Camera.main != null) Camera.main.transform.position = new Vector3(gridCenter.x, gridCenter.y, -10);
     }
 
     private void BindEvents()

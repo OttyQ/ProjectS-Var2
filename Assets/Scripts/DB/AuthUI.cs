@@ -25,6 +25,15 @@ public class AuthUI : MonoBehaviour
 
     private void Register()
     {
+        // Проверка на пустые поля
+        if (string.IsNullOrWhiteSpace(_usernameInput.text) || string.IsNullOrWhiteSpace(_passwordInput.text))
+        {
+            Debug.LogError("Registration failed. Username or password is empty.");
+            ShowMessage("Please fill in both username and password.");
+            return; // Прерываем выполнение, если поля пустые
+        }
+
+        // Попытка регистрации
         bool success = _userManager.Register(_usernameInput.text, _passwordInput.text);
         if (success)
         {
@@ -37,10 +46,11 @@ public class AuthUI : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Registration failed. Username might be alreay exist!");
-            ShowMessage("Registration failed.");
+            Debug.LogError("Registration failed. Username might already exist!");
+            ShowMessage("Registration failed. Username might already exist!");
         }
     }
+
 
     private void Login()
     {
@@ -74,7 +84,7 @@ public class AuthUI : MonoBehaviour
         _errorText.text = message;
         _errorText.color = Color.red;
         _errorText.gameObject.SetActive(true); // Убедимся, что текст отображается
-        StartCoroutine(HideMessageAfterDelay(_errorText, 45f)); // Запускаем сопрограмму для скрытия
+        StartCoroutine(HideMessageAfterDelay(_errorText, 20f)); // Запускаем сопрограмму для скрытия
     }
 
     private IEnumerator HideMessageAfterDelay(TMP_Text messageText, float delay)
