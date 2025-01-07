@@ -9,7 +9,7 @@ public class GameSaveData
     public int collectedGold;
     public List<CellData> cells;
     
-    // Новые поля для сохранения прогрессии
+    // Поля для сохранения прогрессии
     public int fieldSize;
     public int maxDepth;
     public int maxShovels;

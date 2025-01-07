@@ -159,7 +159,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.03727322, y: 0.27776393}
   m_AnchorMax: {x: 0.9641804, y: 0.81747216}
-  m_AnchoredPosition: {x: -0.26565552, y: 1.3679047}
+  m_AnchoredPosition: {x: -0.26568604, y: 1.3679199}
   m_SizeDelta: {x: 3.468689, y: 0.05041504}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &158108682
@@ -937,7 +937,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.0014648438, y: -0.000015258789}
+  m_AnchoredPosition: {x: -0.0014648438, y: 0}
   m_SizeDelta: {x: 1.0899963, y: -289.68823}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &385328663
@@ -960,7 +960,7 @@ MonoBehaviour:
   m_ChildAlignment: 4
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 450, y: 60}
+  m_CellSize: {x: 400, y: 60}
   m_Spacing: {x: 0, y: 0}
   m_Constraint: 0
   m_ConstraintCount: 2
@@ -1768,7 +1768,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1908766855}
         m_TargetAssemblyTypeName: AuthUI, Assembly-CSharp
-        m_MethodName: hideLeaderBoard
+        m_MethodName: HideLeaderBoard
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2302,7 +2302,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1908766855}
         m_TargetAssemblyTypeName: AuthUI, Assembly-CSharp
-        m_MethodName: showLeaderBoard
+        m_MethodName: ShowLeaderBoard
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

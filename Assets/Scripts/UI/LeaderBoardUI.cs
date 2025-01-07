@@ -54,6 +54,6 @@ public class LeaderBoardUI : MonoBehaviour
         // Устанавливаем данные
         usernameText.text = entry.Username;
         scoreText.text = entry.MaxScore.ToString();
-        timestampText.text = entry.Timestamp.ToString("yyyy-MM-dd HH:mm");
+        timestampText.text = entry.Timestamp.ToString("dd-MM-yyyy HH:mm"); //"yyyy-MM-dd HH:mm" 
     }
 }

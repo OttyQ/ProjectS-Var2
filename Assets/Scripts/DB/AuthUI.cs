@@ -94,12 +94,12 @@ public class AuthUI : MonoBehaviour
         messageText.text = ""; // Очищаем текст
     }
 
-    public void showLeaderBoard()
+    public void ShowLeaderBoard()
     {
         _leaderBoard.SetActive(true);
     }
 
-    public void hideLeaderBoard()
+    public void HideLeaderBoard()
     {
         _leaderBoard.SetActive(false);
     }
