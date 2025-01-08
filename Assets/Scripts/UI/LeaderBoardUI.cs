@@ -6,6 +6,7 @@ public class LeaderBoardUI : MonoBehaviour
 {
     [SerializeField] private Transform _leaderBoardContainer; // Контейнер для элементов таблицы
     [SerializeField] private GameObject _leaderBoardEntryPrefab; // Префаб элемента таблицы
+    [SerializeField] private TextMeshProUGUI _noLeaderText; // Текст о том, что список пуст
 
     private DataBaseManager _dbManager;
 
@@ -31,6 +32,14 @@ public class LeaderBoardUI : MonoBehaviour
             Destroy(child.gameObject);
         }
 
+        if (leaderBoardData == null || leaderBoardData.Count == 0)
+        {
+            _noLeaderText.gameObject.SetActive(true);
+            return;
+        }
+        
+        _noLeaderText.gameObject.SetActive(false);
+        
         // Создание новых элементов
         foreach (var entry in leaderBoardData)
         {
